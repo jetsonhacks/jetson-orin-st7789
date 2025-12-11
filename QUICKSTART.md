@@ -1,100 +1,154 @@
 # Quick Start Guide - jetson-orin-st7789
 
-Get your ST7789 display driver up and running in 5 minutes!
+Get your ST7789 display driver up and running on Jetson Orin Nano!
 
 ## Prerequisites
 
-- NVIDIA Jetson (Orin Nano, Xavier NX, Nano, etc.)
-- ST7789-based LCD display (e.g., Waveshare 2inch LCD)
+- **NVIDIA Jetson Orin Nano Developer Kit**
+- ST7789-based LCD display (Waveshare 2inch LCD, Adafruit ST7789, or similar)
 - Display connected to Jetson 40-pin header
-- JetPack/Ubuntu installed on Jetson
-- `uv` package manager installed
+- JetPack 6.0+ installed
+- `uv` package manager installed (recommended)
 
-## Step 0: Install uv (if needed)
+**Note:** This driver is specifically tested on Jetson Orin Nano. Other Jetson platforms (Xavier, Nano, TX2) have different device tree configurations and would require different overlays.
+
+## Step 0: Hardware Configuration (Required First!)
+
+**Before installing the Python driver, you MUST install a device tree overlay.**
+
+### Quick Overlay Installation
+
+```bash
+# Clone the overlay guide repository
+git clone https://github.com/jetsonhacks/jetson-orin-spi-overlay-guide.git
+cd jetson-orin-spi-overlay-guide/examples/st7789
+
+# Choose your configuration:
+# - jetson-default/  (pins 29, 31) - Standard Jetson Orin wiring
+# - waveshare/       (pins 13, 22) - Waveshare 2inch LCD module  
+# - adafruit/        (pins 18, 22) - Adafruit ST7789 displays
+
+# Example: Install Waveshare overlay
+cd waveshare
+sudo ./install.sh
+
+# Reboot to apply
+sudo reboot
+```
+
+### Verify Overlay Installation
+
+After reboot:
+
+```bash
+# Check SPI device exists
+ls -l /dev/spidev1.0
+# Should show: crw-rw---- 1 root gpio ...
+
+# Verify pins configured (example for Waveshare pins 13, 22)
+sudo gpioinfo | grep -E "spi3_sck|spi3_miso"
+```
+
+### Add User to GPIO Group
+
+This allows running examples without sudo:
+
+```bash
+# Add your user to gpio and dialout groups
+sudo usermod -a -G gpio,dialout $USER
+
+# Log out and log back in for changes to take effect
+# Or reboot
+sudo reboot
+```
+
+See the [Hardware Setup Guide](docs/HARDWARE_SETUP.md) for detailed instructions.
+
+## Step 1: Install uv (if needed)
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
+# Restart terminal or run:
+source $HOME/.cargo/env
 ```
 
-## Step 1: Copy Files (2 minutes)
+## Step 2: Clone and Install Package
 
 ```bash
-# Navigate to your jetson-orin-st7789 directory
+# Clone the repository
+git clone https://github.com/jetsonhacks/jetson-orin-st7789.git
 cd jetson-orin-st7789
 
-# Copy the driver (you have this from the artifact)
-cp /path/to/driver.py src/jetson_orin_st7789/driver.py
+# Install with dependencies
+uv sync
 
-# Copy the examples
-cp st7789_unit_tests.py examples/unit_tests.py
-cp basic_colors_demo.py examples/basic_colors.py
-cp examples__init__.py examples/__init__.py
-```
+# Or with examples dependencies (system monitor)
+uv sync --extra examples
 
-## Step 2: Install Package (1 minute)
-
-```bash
-# Install with all dependencies (creates venv automatically!)
-uv sync --extra dev
-
-# Verify installation (no need to activate venv!)
+# Verify installation
 uv run python -c "from jetson_orin_st7789 import ST7789; print('✓ Success!')"
 ```
 
-## Step 3: Run Your First Demo (30 seconds)
+## Step 3: Run Your First Demo (No sudo needed!)
 
 ```bash
-# Portrait mode (0°)
-uv run st7789-demo
+# Basic colors demo - use the preset matching your overlay!
+# If you installed jetson-default overlay:
+uv run st7789-demo --wiring jetson
 
-# Landscape mode (90°)  
-uv run st7789-demo 90
+# If you installed waveshare overlay:
+uv run st7789-demo --wiring waveshare
+
+# If you installed adafruit overlay:
+uv run st7789-demo --wiring adafruit
+
+# With rotation
+uv run st7789-demo --wiring jetson --rotation 90
 ```
 
-You should see colors cycling on your display! 🎨
+You should see colors cycling on your display.
 
-## Step 4: Run Full Test Suite (2 minutes)
+## Step 4: Run Full Test Suite
 
 ```bash
-# Portrait mode
-uv run st7789-test
+# Test suite with your wiring preset
+uv run st7789-test --wiring jetson
 
-# Landscape mode
-uv run st7789-test 90
-
-# All 4 orientations
-uv run st7789-test 0
-uv run st7789-test 90
-uv run st7789-test 180
-uv run st7789-test 270
+# Test different rotations
+uv run st7789-test --wiring jetson --rotation 90
+uv run st7789-test --wiring jetson --rotation 180
+uv run st7789-test --wiring jetson --rotation 270
 ```
 
-## That's It! 🎉
+## That's It!
 
-Your display driver is now installed and tested. 
+Your display driver is now installed and tested.
+
+## Wiring Preset Reference
+
+**IMPORTANT:** Your Python wiring preset must match the overlay you installed!
+
+| Overlay Installed | Python Preset | DC Pin | RST Pin |
+|-------------------|---------------|--------|---------|
+| jetson-orin-st7789-default | `wiring='jetson'` | 29 | 31 |
+| jetson-orin-st7789-waveshare | `wiring='waveshare'` | 13 | 22 |
+| jetson-orin-st7789-adafruit | `wiring='adafruit'` | 18 | 22 |
 
 ## Modern uv Workflow
 
 With `uv`, you don't need to manually activate virtual environments:
 
 ```bash
-# Add a new dependency
-uv add pillow
-
-# Add a dev dependency
-uv add --dev pytest
-
 # Run any script
-uv run python examples/basic_colors.py
+uv run python examples/basic_colors_demo.py
 
-# Run tests
-uv run pytest
+# Run with arguments
+uv run python examples/basic_colors_demo.py --wiring jetson --rotation 90
 
-# Format code
-uv run black src/
-
-# Lint code
-uv run ruff check src/
+# Run entry points
+uv run st7789-shapes
+uv run st7789-text
+uv run st7789-sysmon  # Requires: uv sync --extra examples
 ```
 
 ## Traditional Workflow (if you prefer)
@@ -103,63 +157,30 @@ If you want to activate the venv manually:
 
 ```bash
 source .venv/bin/activate
-st7789-demo
-st7789-test
+st7789-demo --wiring jetson
+st7789-test --wiring jetson
 ```
 
-## Common Issues & Solutions
-
-### "Package not found"
-```bash
-# Make sure you're in the right directory
-cd jetson-orin-st7789
-uv sync --extra dev
-```
-
-### "Jetson.GPIO not found"
-```bash
-# Install system-wide (required for GPIO access)
-sudo pip3 install Jetson.GPIO
-```
-
-### "No such device /dev/spidev0.0"
-Your device tree needs SPI enabled. Check the documentation.
-
-### "Permission denied"
-```bash
-# Add your user to required groups
-sudo usermod -a -G gpio,spi $USER
-# Logout and login again
-```
-
-### "uv not found"
-```bash
-# Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# Restart terminal or run:
-source $HOME/.cargo/env
-```
-
-## Next Steps
-
-### Create Your Own Scripts
+## Create Your Own Scripts
 
 ```python
 from jetson_orin_st7789 import ST7789
 from PIL import Image, ImageDraw
 
-# Initialize display
-with ST7789(dc_pin=29, rst_pin=31) as display:
-    # Fill screen
-    display.fill((255, 0, 0))
-    
-    # Draw something
-    img = Image.new('RGB', (240, 320), (0, 0, 255))
-    draw = ImageDraw.Draw(img)
-    draw.text((10, 10), "Hello World!", fill=(255, 255, 255))
-    display.display(img)
-    
-    input("Press Enter to exit...")
+# Initialize display - use your wiring preset!
+display = ST7789(wiring='jetson')  # or 'waveshare', 'adafruit'
+
+# Fill screen with red
+display.fill(0xFF0000)
+display.show()
+
+# Draw something
+img = Image.new('RGB', (display.width, display.height), (0, 0, 255))
+draw = ImageDraw.Draw(img)
+draw.text((10, 10), "Hello Orin!", fill=(255, 255, 255))
+display.display_image(img)
+
+input("Press Enter to exit...")
 ```
 
 Save as `my_display.py` and run:
@@ -167,106 +188,145 @@ Save as `my_display.py` and run:
 uv run python my_display.py
 ```
 
-### Explore Examples
+## Common Issues & Solutions
 
-Check the `examples/` directory for more demos:
-- `basic_colors.py` - Simple color cycling
-- `unit_tests.py` - Comprehensive test suite
+### Display Not Working
 
-Run them with:
+1. **Verify overlay is installed:**
+   ```bash
+   ls /boot/*.dtbo | grep st7789
+   # Should show: jetson-orin-st7789-*.dtbo
+   ```
+
+2. **Check wiring preset matches overlay:**
+   - Installed `jetson-default` overlay? → Use `wiring='jetson'`
+   - Installed `waveshare` overlay? → Use `wiring='waveshare'`
+   - Installed `adafruit` overlay? → Use `wiring='adafruit'`
+
+3. **Verify SPI device:**
+   ```bash
+   ls /dev/spidev1.0
+   # Should exist
+   ```
+
+### "Package not found"
 ```bash
-uv run python examples/basic_colors.py
-uv run python examples/unit_tests.py 90
+# Make sure you're in the right directory
+cd jetson-orin-st7789
+uv sync
 ```
 
-### Customize Pins
-
-If your display uses different pins:
-
-```python
-display = ST7789(
-    spi_port=0,        # SPI port
-    spi_cs=0,          # Chip select
-    dc_pin=29,         # Data/Command pin (BOARD mode)
-    rst_pin=31,        # Reset pin (BOARD mode)
-    width=240,         # Display width
-    height=320,        # Display height
-    rotation=0,        # 0, 90, 180, or 270
-    spi_speed_hz=125000000  # 125 MHz
-)
+### "Jetson.GPIO not found"
+```bash
+# Should be installed automatically, but if needed:
+uv add Jetson.GPIO
 ```
 
-### Performance Tips
+### "Permission denied" on GPIO/SPI
+```bash
+# Add your user to required groups
+sudo usermod -a -G gpio,dialout $USER
+# Log out and log back in (or reboot)
+```
 
-1. **Use `fill()` for solid colors** - Faster than creating an image
+If you already added yourself to groups but still see permission errors, verify:
+```bash
+# Check group membership
+groups
+# Should include: gpio dialout
+```
+
+### "No such device /dev/spidev1.0"
+Your device tree overlay is not installed or not loaded. See Step 0 above and the [Hardware Setup Guide](docs/HARDWARE_SETUP.md).
+
+## Hardware Pinout
+
+All configurations use the same SPI pins, only DC and RST differ:
+
+**Common SPI Pins (All Configurations):**
+| Signal | Jetson Pin | Notes |
+|--------|------------|-------|
+| 3.3V   | Pin 17     | Power |
+| GND    | Pin 25     | Ground |
+| MOSI   | Pin 19     | SPI1_MOSI |
+| MISO   | Pin 21     | SPI1_MISO |
+| SCK    | Pin 23     | SPI1_SCK |
+| CS     | Pin 24     | SPI1_CS0 |
+
+**Variable Pins (Depends on Configuration):**
+| Configuration | DC Pin | RST Pin |
+|---------------|--------|---------|
+| Jetson Default | Pin 29 | Pin 31 |
+| Waveshare | Pin 13 | Pin 22 |
+| Adafruit | Pin 18 | Pin 22 |
+
+## Explore Examples
+
+```bash
+# Basic colors cycling
+uv run st7789-demo --wiring jetson
+
+# Geometric shapes
+uv run st7789-shapes --wiring jetson --rotation 90
+
+# Text rendering
+uv run st7789-text --wiring jetson
+
+# System monitor (CPU, RAM, disk)
+uv sync --extra examples  # Install psutil
+uv run st7789-sysmon --wiring jetson
+```
+
+## Performance Tips
+
+1. **Use `fill()` for solid colors** - Much faster than creating images
 2. **Batch updates** - Update once per frame, not per pixel
-3. **Use RGB565** - Native format, no conversion needed
-4. **High SPI speed** - 125 MHz is optimal on Jetson Orin Nano
-
-## Hardware Setup Reminder
-
-Default pinout for this library:
-
-| Display | Jetson Pin | Signal | Notes |
-|---------|------------|--------|-------|
-| VCC     | 1 or 17    | 3.3V   | Power |
-| GND     | 6, 9, etc  | Ground | |
-| DIN     | 19         | MOSI   | Data |
-| CLK     | 23         | SCK    | Clock |
-| CS      | 24         | CS0    | Chip Select |
-| DC      | 29         | GPIO   | Data/Command |
-| RST     | 31         | GPIO   | Reset |
-| BL      | 1 or 17    | 3.3V   | Backlight |
+3. **Use RGB565 format** - Native display format
+4. **High SPI speed** - Default 80 MHz is optimal for Orin Nano
 
 ## Getting Help
 
-1. Check the [SETUP_CHECKLIST.md](SETUP_CHECKLIST.md) for detailed steps
-2. Read [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md) to understand the code
-3. Review the main [README.md](README.md) for comprehensive documentation
-4. Open an issue on GitHub if you're still stuck
+1. Check the main [README.md](README.md) for comprehensive documentation
+2. Review [Hardware Setup Guide](docs/HARDWARE_SETUP.md) for overlay installation
+3. See [Wiring Guide](docs/WIRING_GUIDE.md) for pin configurations
+4. Visit the [overlay guide](https://github.com/jetsonhacks/jetson-orin-spi-overlay-guide) for device tree help
+5. Open an issue on GitHub if you're stuck
 
-## uv Cheat Sheet
+## uv Quick Reference
 
 ```bash
-# Setup and installation
+# Installation
 uv sync                    # Install dependencies
-uv sync --extra dev        # Install with dev dependencies
-uv sync --all-extras       # Install all extras
+uv sync --extra examples   # Install with examples extras
+uv sync --all-extras       # Install everything
 
-# Running commands
-uv run <command>           # Run command in venv (no activation needed)
+# Running
+uv run <command>           # Run in venv (no activation needed)
 uv run python script.py    # Run Python script
 uv run st7789-test         # Run entry point
 
-# Managing dependencies
-uv add <package>           # Add runtime dependency
+# Dependencies
+uv add <package>           # Add dependency
 uv add --dev <package>     # Add dev dependency
-uv remove <package>        # Remove dependency
 uv lock                    # Update lockfile
-
-# Traditional venv activation (optional)
-source .venv/bin/activate  # Activate venv manually
 ```
-
-## Time Investment
-
-- **Initial setup**: 5 minutes
-- **First successful display**: 10 seconds after setup
-- **Learning the API**: 15 minutes
-- **Creating custom displays**: 30+ minutes (the fun part!)
 
 ## Success Checklist
 
-- [ ] `uv` installed
-- [ ] Package installed with `uv sync --extra dev`
-- [ ] Basic demo runs and displays colors
-- [ ] Unit tests pass
-- [ ] Display responds to rotation changes
-- [ ] Can create custom displays
-- [ ] Ready to build something cool! 🚀
+- [ ] Jetson Orin Nano with JetPack 6.0+
+- [ ] Device tree overlay installed (Step 0)
+- [ ] User added to gpio and dialout groups
+- [ ] Logged out and back in (or rebooted)
+- [ ] SPI device `/dev/spidev1.0` exists
+- [ ] Python package installed with `uv sync`
+- [ ] Demo runs with correct wiring preset (no sudo needed)
+- [ ] Tests pass
+- [ ] Ready to build!
 
 ---
 
-**You're all set!** Start building amazing display projects with your Jetson.
+**You're all set!** Start building display projects with your Jetson Orin Nano.
 
-Happy coding! 💻🎨
+For detailed documentation, see [README.md](README.md).
+
+Happy coding!

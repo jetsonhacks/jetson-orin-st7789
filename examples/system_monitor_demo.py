@@ -26,6 +26,25 @@ except ImportError:
     print("Warning: psutil not installed. Using simulated data.")
     print("Install with: uv add psutil")
 
+# Try to load larger fonts for better readability
+try:
+    from PIL import ImageFont
+    # Try to load DejaVu Sans (common on Linux systems)
+    FONT_SMALL = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+    FONT_MEDIUM = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+    FONT_MEDIUM_BOLD = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)    
+    FONT_LARGE = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+    FONT_AVAILABLE = True
+    print("Using TrueType fonts for better readability")
+except:
+    # Fallback to default (will be small but functional)
+    FONT_SMALL = None
+    FONT_MEDIUM = None
+    FONT_LARGE = None
+    FONT_AVAILABLE = False
+    print("Warning: TrueType fonts not available, text will be small")
+    print("Install fonts with: sudo apt-get install fonts-dejavu-core")
+
 
 # Wiring presets for different hardware configurations
 WIRING_PRESETS = {
@@ -151,14 +170,14 @@ class SystemMonitor:
     
     def draw_header(self, draw, width):
         """Draw header bar"""
-        draw.rectangle([0, 0, width, 30], fill=(50, 50, 80))
-        draw.text((10, 8), "System Monitor", fill=(255, 255, 255))
+        draw.rectangle([0, 0, width, 35], fill=(50, 50, 80))
+        draw.text((10, 8), "System Monitor", fill=(255, 255, 255), font=FONT_MEDIUM)
         
         # Timestamp
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-        bbox = draw.textbbox((0, 0), timestamp)
+        bbox = draw.textbbox((0, 0), timestamp, font=FONT_SMALL)
         ts_width = bbox[2] - bbox[0]
-        draw.text((width - ts_width - 10, 8), timestamp, fill=(200, 200, 200))
+        draw.text((width - ts_width - 10, 10), timestamp, fill=(200, 200, 200), font=FONT_SMALL)
     
     def draw_stat_bar(self, draw, x, y, width, height, value, max_value, 
                      label, color, show_text=True):
@@ -173,10 +192,10 @@ class SystemMonitor:
             draw.rectangle([x + 1, y + 1, x + 1 + fill_width, y + height - 1],
                          fill=color)
         
-        # Label
+        # Label with larger font
         if show_text:
             text = f"{label}: {value:.1f}%"
-            draw.text((x + 5, y + (height - 10) // 2), text, fill=(255, 255, 255))
+            draw.text((x + 5, y + (height - 18) // 2), text, fill=(255, 255, 255), font=FONT_MEDIUM)
     
     def draw_gauge(self, draw, cx, cy, radius, value, max_value, 
                    label, color):
@@ -193,24 +212,24 @@ class SystemMonitor:
                          start=-90, end=-90 + angle, fill=color)
         
         # Center circle (to make it look like a gauge)
-        inner_radius = radius - 8
+        inner_radius = radius - 10
         draw.ellipse([cx - inner_radius, cy - inner_radius,
                      cx + inner_radius, cy + inner_radius],
                     fill=(0, 0, 0))
         
-        # Value text
+        # Value text with medium font (reduced from FONT_LARGE to prevent collision)
         text = f"{value:.0f}%"
-        bbox = draw.textbbox((0, 0), text)
+        bbox = draw.textbbox((0, 0), text, font=FONT_MEDIUM_BOLD)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
         draw.text((cx - text_width // 2, cy - text_height // 2), 
-                 text, fill=(255, 255, 255))
+                 text, fill=(255, 255, 255), font=FONT_MEDIUM)
         
-        # Label below gauge
-        bbox = draw.textbbox((0, 0), label)
+        # Label below gauge with medium font
+        bbox = draw.textbbox((0, 0), label, font=FONT_MEDIUM)
         label_width = bbox[2] - bbox[0]
         draw.text((cx - label_width // 2, cy + radius + 5), 
-                 label, fill=(200, 200, 200))
+                 label, fill=(200, 200, 200), font=FONT_MEDIUM)
     
     def draw_line_graph(self, draw, x, y, width, height, data, 
                        max_value, color, fill=False):
@@ -247,52 +266,53 @@ class SystemMonitor:
         if len(points) > 1:
             draw.line(points, fill=color, width=2)
     
-    def draw_text_stat(self, draw, x, y, label, value, unit, color):
-        """Draw a text-based stat"""
-        draw.text((x, y), label, fill=(180, 180, 180))
+    def draw_text_stat(self, draw, x, y, width, label, value, unit, color):
+        """Draw a text-based stat with larger font"""
+        draw.text((x, y), label, fill=(180, 180, 180), font=FONT_MEDIUM)
         text = f"{value:.1f}{unit}"
-        bbox = draw.textbbox((0, 0), text)
+        bbox = draw.textbbox((0, 0), text, font=FONT_MEDIUM)
         text_width = bbox[2] - bbox[0]
-        draw.text((x + 150 - text_width, y), text, fill=color)
+        # Right-align value at screen edge with 10px margin
+        draw.text((x + width - text_width - 10, y), text, fill=color, font=FONT_MEDIUM)
     
     def render_layout_1(self, draw, width, height, stats):
         """Layout 1: Bars and text"""
-        y_pos = 40
+        y_pos = 45
         
-        # CPU bar
-        self.draw_stat_bar(draw, 10, y_pos, width - 20, 30, 
+        # CPU bar (taller for better visibility)
+        self.draw_stat_bar(draw, 10, y_pos, width - 20, 35, 
                           stats['cpu_percent'], 100, "CPU", (255, 100, 100))
-        y_pos += 40
+        y_pos += 45
         
         # Memory bar
-        self.draw_stat_bar(draw, 10, y_pos, width - 20, 30,
+        self.draw_stat_bar(draw, 10, y_pos, width - 20, 35,
                           stats['mem_percent'], 100, "Memory", (100, 255, 100))
-        y_pos += 40
+        y_pos += 45
         
         # Disk bar
-        self.draw_stat_bar(draw, 10, y_pos, width - 20, 30,
+        self.draw_stat_bar(draw, 10, y_pos, width - 20, 35,
                           stats['disk_percent'], 100, "Disk", (100, 100, 255))
-        y_pos += 50
+        y_pos += 55
         
-        # Additional stats
-        self.draw_text_stat(draw, 10, y_pos, "CPU Temp:", 
+        # Additional stats with more spacing - pass width for proper alignment
+        self.draw_text_stat(draw, 10, y_pos, width - 20, "CPU Temp:", 
                            stats['cpu_temp'], "°C", (255, 150, 100))
-        y_pos += 25
+        y_pos += 30
         
-        self.draw_text_stat(draw, 10, y_pos, "Memory Used:",
+        self.draw_text_stat(draw, 10, y_pos, width - 20, "Memory Used:",
                            stats['mem_used_gb'], " GB", (150, 255, 150))
-        y_pos += 25
+        y_pos += 30
         
-        self.draw_text_stat(draw, 10, y_pos, "Memory Total:",
+        self.draw_text_stat(draw, 10, y_pos, width - 20, "Memory Total:",
                            stats['mem_total_gb'], " GB", (150, 200, 255))
     
     def render_layout_2(self, draw, width, height, stats):
         """Layout 2: Circular gauges"""
         y_pos = 50
         
-        # Three gauges in a row
-        gauge_y = y_pos + 45
-        gauge_radius = 40
+        # Three gauges in a row (smaller to fit)
+        gauge_y = y_pos + 40
+        gauge_radius = 35  # Reduced from 45 to fit better
         spacing = width // 3
         
         self.draw_gauge(draw, spacing // 2, gauge_y, gauge_radius,
@@ -304,59 +324,60 @@ class SystemMonitor:
         self.draw_gauge(draw, 2 * spacing + spacing // 2, gauge_y, gauge_radius,
                        stats['disk_percent'], 100, "Disk", (100, 150, 255))
         
-        # Stats below
-        y_pos = gauge_y + gauge_radius + 35
+        # Stats below with more spacing
+        y_pos = gauge_y + gauge_radius + 35  # Adjusted spacing
         
         # Draw box for details
-        draw.rectangle([10, y_pos, width - 10, y_pos + 80],
+        box_width = width - 20
+        draw.rectangle([10, y_pos, 10 + box_width, y_pos + 95],
                       outline=(100, 100, 100), width=1)
         
-        y_pos += 10
-        self.draw_text_stat(draw, 20, y_pos, "Temperature:",
+        y_pos += 12
+        self.draw_text_stat(draw, 20, y_pos, box_width - 20, "Temperature:",
                            stats['cpu_temp'], "°C", (255, 200, 100))
-        y_pos += 25
+        y_pos += 30
         
-        self.draw_text_stat(draw, 20, y_pos, "Mem Used:",
+        self.draw_text_stat(draw, 20, y_pos, box_width - 20, "Mem Used:",
                            stats['mem_used_gb'], " GB", (150, 255, 150))
-        y_pos += 25
+        y_pos += 30
         
-        self.draw_text_stat(draw, 20, y_pos, "Mem Total:",
+        self.draw_text_stat(draw, 20, y_pos, box_width - 20, "Mem Total:",
                            stats['mem_total_gb'], " GB", (200, 200, 255))
     
     def render_layout_3(self, draw, width, height, stats):
         """Layout 3: Line graphs"""
         # CPU graph
-        graph_height = 60
-        y_pos = 40
+        graph_height = 65
+        y_pos = 45
         
-        draw.text((10, y_pos), "CPU Usage History", fill=(255, 200, 200))
-        y_pos += 15
+        draw.text((10, y_pos), "CPU Usage History", fill=(255, 200, 200), font=FONT_MEDIUM)
+        y_pos += 20
         
         self.draw_line_graph(draw, 10, y_pos, width - 20, graph_height,
                             self.cpu_history, 100, (255, 100, 100), fill=True)
         
-        # Current value
-        draw.text((width - 60, y_pos + graph_height - 15),
-                 f"{stats['cpu_percent']:.1f}%", fill=(255, 150, 150))
+        # Current value with larger font
+        draw.text((width - 70, y_pos + graph_height - 20),
+                 f"{stats['cpu_percent']:.1f}%", fill=(255, 150, 150), font=FONT_MEDIUM)
         
         # Memory graph
-        y_pos += graph_height + 20
-        draw.text((10, y_pos), "Memory Usage History", fill=(200, 255, 200))
-        y_pos += 15
+        y_pos += graph_height + 25
+        draw.text((10, y_pos), "Memory Usage History", fill=(200, 255, 200), font=FONT_MEDIUM)
+        y_pos += 20
         
         self.draw_line_graph(draw, 10, y_pos, width - 20, graph_height,
                             self.mem_history, 100, (100, 255, 100), fill=True)
         
-        # Current value
-        draw.text((width - 60, y_pos + graph_height - 15),
-                 f"{stats['mem_percent']:.1f}%", fill=(150, 255, 150))
+        # Current value with larger font
+        draw.text((width - 70, y_pos + graph_height - 20),
+                 f"{stats['mem_percent']:.1f}%", fill=(150, 255, 150), font=FONT_MEDIUM)
         
-        # Stats summary below
-        y_pos += graph_height + 20
+        # Stats summary below with larger font and more spacing
+        y_pos += graph_height + 25
         draw.text((10, y_pos), f"Temp: {stats['cpu_temp']:.1f}°C", 
-                 fill=(255, 200, 100))
-        draw.text((10, y_pos + 20), 
-                 f"Disk: {stats['disk_percent']:.1f}%", fill=(150, 150, 255))
+                 fill=(255, 200, 100), font=FONT_MEDIUM)
+        draw.text((10, y_pos + 25), 
+                 f"Disk: {stats['disk_percent']:.1f}%", fill=(150, 150, 255), font=FONT_MEDIUM)
 
 
 
