@@ -1,0 +1,141 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jetson-orin-st7789"
+version = "1.0.0"
+description = "High-performance ST7789 LCD display driver for NVIDIA Jetson Orin platforms"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "JetsonHacks", email = "info@jetsonhacks.com" }
+]
+maintainers = [
+    { name = "JetsonHacks", email = "info@jetsonhacks.com" }
+]
+keywords = [
+    "st7789",
+    "lcd",
+    "display",
+    "jetson",
+    "jetson-orin",
+    "orin",
+    "orin-nano",
+    "spi",
+    "driver",
+    "embedded",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: POSIX :: Linux",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "Jetson.GPIO>=2.0.0",
+    "spidev>=3.5",
+    "numpy>=1.19.0",
+    "Pillow>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+]
+examples = [
+    "psutil>=5.9.0",  # For system_monitor example
+]
+all = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+    "psutil>=5.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/jetsonhacks/jetson-orin-st7789"
+Documentation = "https://github.com/jetsonhacks/jetson-orin-st7789/blob/main/README.md"
+Repository = "https://github.com/jetsonhacks/jetson-orin-st7789"
+Issues = "https://github.com/jetsonhacks/jetson-orin-st7789/issues"
+
+[project.scripts]
+# Core demos
+st7789-demo = "jetson_orin_st7789.examples.basic_colors:main"
+st7789-test = "jetson_orin_st7789.examples.unit_tests:main"
+
+# Additional examples
+st7789-shapes = "jetson_orin_st7789.examples.shapes_demo:main"
+st7789-text = "jetson_orin_st7789.examples.text_demo:main"
+st7789-sysmon = "jetson_orin_st7789.examples.system_monitor:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jetson_orin_st7789"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/examples",
+    "/docs",
+    "/tests",
+    "/tools",
+    "/README.md",
+    "/LICENSE",
+]
+
+# Black code formatter
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+
+# Ruff linter
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501", "B008", "C901"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = ["-ra", "--strict-markers"]
+testpaths = ["tests"]
+
+# MyPy type checker
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["spidev", "Jetson.GPIO"]
+ignore_missing_imports = true
