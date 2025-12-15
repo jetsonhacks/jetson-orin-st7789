@@ -33,7 +33,7 @@ See [docs/PIN_INSPECTOR_GUIDE.md](../docs/PIN_INSPECTOR_GUIDE.md) for complete u
 **Requirements:**
 - Root/sudo access
 - Kernel debugfs mounted
-- Optional: Jetson.GPIO for blink tests
+- Optional: libgpiod for blink tests ( $ sudo apt install libgpiod )
 
 ## Common Workflows
 
