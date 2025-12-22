@@ -39,7 +39,7 @@ cd jetson-orin-st7789
 # Using uv (recommended)
 uv sync
 
-# Using pip
+# Or if using pip
 pip install -e .
 ```
 
@@ -77,18 +77,18 @@ Your Python wiring preset must match the device tree overlay you installed:
 
 ```bash
 # Basic colors demo
-st7789-demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
 
 # With rotation
-st7789-demo --wiring jetson --rotation 90
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson --rotation 90
 
 # Run test suite
-st7789-test --wiring jetson
+uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson
 
 # Other examples
-st7789-shapes
-st7789-text
-st7789-sysmon  # Requires: uv sync --extra examples
+uv run python -m jetson_orin_st7789.examples.shapes_demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.text_demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.system_monitor --wiring jetson  # Requires: uv sync --extra examples
 ```
 
 ## Documentation

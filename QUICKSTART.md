@@ -29,7 +29,7 @@ cd jetson-orin-spi-overlay-guide/examples/st7789
 # - adafruit/        (pins 18, 22) - Adafruit ST7789 displays
 
 # Example: Install Waveshare overlay
-cd waveshare
+cd jetson-default
 sudo ./install.sh
 
 # Reboot to apply
@@ -68,8 +68,8 @@ See the [Hardware Setup Guide](docs/HARDWARE_SETUP.md) for detailed instructions
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-# Restart terminal or run:
-source $HOME/.cargo/env
+# Restart terminal
+
 ```
 
 ## Step 2: Clone and Install Package
@@ -94,16 +94,16 @@ uv run python -c "from jetson_orin_st7789 import ST7789; print('✓ Success!')"
 ```bash
 # Basic colors demo - use the preset matching your overlay!
 # If you installed jetson-default overlay:
-uv run st7789-demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
 
 # If you installed waveshare overlay:
-uv run st7789-demo --wiring waveshare
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring waveshare
 
 # If you installed adafruit overlay:
-uv run st7789-demo --wiring adafruit
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring adafruit
 
 # With rotation
-uv run st7789-demo --wiring jetson --rotation 90
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson --rotation 90
 ```
 
 You should see colors cycling on your display.
@@ -112,12 +112,12 @@ You should see colors cycling on your display.
 
 ```bash
 # Test suite with your wiring preset
-uv run st7789-test --wiring jetson
+uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson
 
 # Test different rotations
-uv run st7789-test --wiring jetson --rotation 90
-uv run st7789-test --wiring jetson --rotation 180
-uv run st7789-test --wiring jetson --rotation 270
+uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson --rotation 90
+uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson --rotation 180
+uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson --rotation 270
 ```
 
 ## That's It!
@@ -139,16 +139,17 @@ Your display driver is now installed and tested.
 With `uv`, you don't need to manually activate virtual environments:
 
 ```bash
-# Run any script
+# Run any example script
 uv run python examples/basic_colors_demo.py
 
 # Run with arguments
 uv run python examples/basic_colors_demo.py --wiring jetson --rotation 90
 
-# Run entry points
-uv run st7789-shapes
-uv run st7789-text
-uv run st7789-sysmon  # Requires: uv sync --extra examples
+# Or use module syntax
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
+uv run python -m jetson_orin_st7789.examples.shapes_demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.text_demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.system_monitor --wiring jetson  # Requires: uv sync --extra examples
 ```
 
 ## Traditional Workflow (if you prefer)
@@ -157,8 +158,8 @@ If you want to activate the venv manually:
 
 ```bash
 source .venv/bin/activate
-st7789-demo --wiring jetson
-st7789-test --wiring jetson
+python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
+python -m jetson_orin_st7789.examples.unit_tests --wiring jetson
 ```
 
 ## Create Your Own Scripts
@@ -264,17 +265,17 @@ All configurations use the same SPI pins, only DC and RST differ:
 
 ```bash
 # Basic colors cycling
-uv run st7789-demo --wiring jetson
+uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
 
 # Geometric shapes
-uv run st7789-shapes --wiring jetson --rotation 90
+uv run python -m jetson_orin_st7789.examples.shapes_demo --wiring jetson --rotation 90
 
 # Text rendering
-uv run st7789-text --wiring jetson
+uv run python -m jetson_orin_st7789.examples.text_demo --wiring jetson
 
 # System monitor (CPU, RAM, disk)
 uv sync --extra examples  # Install psutil
-uv run st7789-sysmon --wiring jetson
+uv run python -m jetson_orin_st7789.examples.system_monitor --wiring jetson
 ```
 
 ## Performance Tips

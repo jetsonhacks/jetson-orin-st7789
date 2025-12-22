@@ -46,6 +46,7 @@ dependencies = [
     "spidev>=3.5",
     "numpy>=1.19.0",
     "Pillow>=8.0.0",
+    "psutil>=7.1.3",
 ]
 
 [project.optional-dependencies]
@@ -81,16 +82,6 @@ Homepage = "https://github.com/jetsonhacks/jetson-orin-st7789"
 Documentation = "https://github.com/jetsonhacks/jetson-orin-st7789/blob/main/README.md"
 Repository = "https://github.com/jetsonhacks/jetson-orin-st7789"
 Issues = "https://github.com/jetsonhacks/jetson-orin-st7789/issues"
-
-[project.scripts]
-# Core demos
-st7789-demo = "jetson_orin_st7789.examples.basic_colors:main"
-st7789-test = "jetson_orin_st7789.examples.unit_tests:main"
-
-# Additional examples
-st7789-shapes = "jetson_orin_st7789.examples.shapes_demo:main"
-st7789-text = "jetson_orin_st7789.examples.text_demo:main"
-st7789-sysmon = "jetson_orin_st7789.examples.system_monitor:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/jetson_orin_st7789"]
