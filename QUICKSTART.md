@@ -45,8 +45,6 @@ After reboot:
 ls -l /dev/spidev1.0
 # Should show: crw-rw---- 1 root gpio ...
 
-# Verify pins configured (example for Waveshare pins 13, 22)
-sudo gpioinfo | grep -E "spi3_sck|spi3_miso"
 ```
 
 ### Add User to GPIO Group
@@ -86,7 +84,7 @@ uv sync
 uv sync --extra examples
 
 # Verify installation
-uv run python -c "from jetson_orin_st7789 import ST7789; print('✓ Success!')"
+uv run python -c "from jetson_orin_st7789 import ST7789; print('✓ Success')"
 ```
 
 ## Step 3: Run Your First Demo (No sudo needed!)
@@ -94,16 +92,16 @@ uv run python -c "from jetson_orin_st7789 import ST7789; print('✓ Success!')"
 ```bash
 # Basic colors demo - use the preset matching your overlay!
 # If you installed jetson-default overlay:
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
+uv run python examples/basic_colors.py
 
 # If you installed waveshare overlay:
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring waveshare
+uv run python examples/basic_colors.py --wiring waveshare
 
 # If you installed adafruit overlay:
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring adafruit
+uv run python examples/basic_colors.py --wiring adafruit
 
 # With rotation
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson --rotation 90
+uv run python examples/basic_colors.py n --rotation 90
 ```
 
 You should see colors cycling on your display.
@@ -112,12 +110,12 @@ You should see colors cycling on your display.
 
 ```bash
 # Test suite with your wiring preset
-uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson
+uv run python examples/st7789_unit_tests.py --wiring jetson
 
 # Test different rotations
-uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson --rotation 90
-uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson --rotation 180
-uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson --rotation 270
+uv run python examples/st7789_unit_tests.py  --rotation 90
+uv run python examples/st7789_unit_tests.py  --rotation 180
+uv run python examples/st7789_unit_tests.py  --rotation 270
 ```
 
 ## That's It!
@@ -145,11 +143,6 @@ uv run python examples/basic_colors_demo.py
 # Run with arguments
 uv run python examples/basic_colors_demo.py --wiring jetson --rotation 90
 
-# Or use module syntax
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
-uv run python -m jetson_orin_st7789.examples.shapes_demo --wiring jetson
-uv run python -m jetson_orin_st7789.examples.text_demo --wiring jetson
-uv run python -m jetson_orin_st7789.examples.system_monitor --wiring jetson  # Requires: uv sync --extra examples
 ```
 
 ## Traditional Workflow (if you prefer)
@@ -158,8 +151,8 @@ If you want to activate the venv manually:
 
 ```bash
 source .venv/bin/activate
-python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
-python -m jetson_orin_st7789.examples.unit_tests --wiring jetson
+python examples/basic_colors_demo.py --wiring jetson
+python examples/st7789_unit_tests.py --wiring jetson
 ```
 
 ## Create Your Own Scripts
@@ -304,7 +297,6 @@ uv sync --all-extras       # Install everything
 # Running
 uv run <command>           # Run in venv (no activation needed)
 uv run python script.py    # Run Python script
-uv run st7789-test         # Run entry point
 
 # Dependencies
 uv add <package>           # Add dependency
@@ -312,21 +304,8 @@ uv add --dev <package>     # Add dev dependency
 uv lock                    # Update lockfile
 ```
 
-## Success Checklist
-
-- [ ] Jetson Orin Nano with JetPack 6.0+
-- [ ] Device tree overlay installed (Step 0)
-- [ ] User added to gpio and dialout groups
-- [ ] Logged out and back in (or rebooted)
-- [ ] SPI device `/dev/spidev1.0` exists
-- [ ] Python package installed with `uv sync`
-- [ ] Demo runs with correct wiring preset (no sudo needed)
-- [ ] Tests pass
-- [ ] Ready to build!
-
 ---
 
-**You're all set!** Start building display projects with your Jetson Orin Nano.
 
 For detailed documentation, see [README.md](README.md).
 
