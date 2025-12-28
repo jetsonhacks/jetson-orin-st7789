@@ -43,7 +43,7 @@ uv sync
 pip install -e .
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
+See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions and example usage.
 
 ## Usage
 
@@ -73,23 +73,6 @@ Your Python wiring preset must match the device tree overlay you installed:
 | `'waveshare'` | jetson-orin-st7789-waveshare | 13 | 22 |
 | `'adafruit'` | jetson-orin-st7789-adafruit | 18 | 22 |
 
-## Examples
-
-```bash
-# Basic colors demo
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson
-
-# With rotation
-uv run python -m jetson_orin_st7789.examples.basic_colors --wiring jetson --rotation 90
-
-# Run test suite
-uv run python -m jetson_orin_st7789.examples.unit_tests --wiring jetson
-
-# Other examples
-uv run python -m jetson_orin_st7789.examples.shapes_demo --wiring jetson
-uv run python -m jetson_orin_st7789.examples.text_demo --wiring jetson
-uv run python -m jetson_orin_st7789.examples.system_monitor --wiring jetson  # Requires: uv sync --extra examples
-```
 
 ## Documentation
 
@@ -106,22 +89,6 @@ uv run python -m jetson_orin_st7789.examples.system_monitor --wiring jetson  # R
 - Python 3.10+
 
 **Note:** This driver is specifically designed for Jetson Orin platforms. Device tree overlays and pin configurations are Orin-specific and will not work on other Jetson platforms (Xavier, Nano, TX2) without modification.
-
-## Development
-
-```bash
-# Install with dev dependencies
-uv sync --all-extras
-
-# Run tests
-pytest tests/ -v
-
-# Format code
-black src/ examples/ tests/
-
-# Lint
-ruff check src/ examples/ tests/
-```
 
 ## Related Projects
 
